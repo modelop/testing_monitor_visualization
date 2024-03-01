@@ -1,0 +1,36 @@
+--------------------------------------------------Training Report--------------------------------------------------
+Domain: model_name
+Machine learning model: Logistic Regression
+
+Training features: 
+['VALUES_UNIT_FLAG', 'VALUES_IDENTIFIER_FLAG', 'VALUES_TREATMENT_FLAG', 'VALUES_ANALYSIS_FLAG', 'VAL_PERCENT_MATH_OPERATOR', 'VAL_PERCENT_ALPHANUMERIC', 'VAL_PERCENT_SPECIAL_CHAR', 'Date',
+ 'String', 'Numeric', 'BC5CDR_MAIN_ENTITY']
+
+Hyperparameters: 
+{'C': 1.0, 'class_weight': None, 'dual': False, 'fit_intercept': True, 'intercept_scaling': 1, 'l1_ratio': None, 'max_iter': 100, 'multi_class': 'auto', 'n_jobs': None, 'penalty': 'l2', 'r
+andom_state': 5, 'solver': 'liblinear', 'tol': 0.0001, 'verbose': 0, 'warm_start': False}
+
+Initial test data analysis:-
+===================================
+No of training samples: 85
+No of test samples: 14
+
+Model performance
+===================
+|Precision_pos_class||Precision_neg_class||Recall_pos_class||Recall_neg_class||Fscore_pos_class||Fscore_neg_class|
+        2.23                5.23                3.23                4.23                1.23                6.23        
+|True_negative||False_positive||False_negative||True_positive|
+     7.23          9.23          0.23         8.23     
+
+
+Evolving test data analysis:-
+===================================
+No of training samples: 86
+No of test samples: 8
+
+Model performance
+===================
+|Precision_pos_class||Precision_neg_class||Recall_pos_class||Recall_neg_class||Fscore_pos_class||Fscore_neg_class|
+        1.23                2.23                4.23                6.23                5.23                3.23        
+|True_negative||False_positive||False_negative||True_positive|
+     7.23          0.23          8.23          9.23   
