@@ -28,6 +28,9 @@ def fix_numpy_nans_and_infs_in_dict(val: float) -> float: #removes nan and inf f
             pass
 
     return val
+
+
+
 # modelop.init
 def init(init_param):
     global DEPLOYABLE_MODEL_ID
@@ -35,7 +38,7 @@ def init(init_param):
     job = json.loads(init_param["rawJson"])
     
     # Get the deployable model we are targeting
-    DEPLOYABLE_MODEL_ID = job.get('referenceModel', {}).get('id', None) #7d5b3982-b2e5-444f-aab5-4de2727d1c3f
+    DEPLOYABLE_MODEL_ID = job.get('referenceModel', {}).get('id', None) 
     if not DEPLOYABLE_MODEL_ID:
         raise ValueError('You must provide a reference model for this job of the model to pull the test results from')
 
@@ -75,7 +78,7 @@ def metrics(data: pd.DataFrame):
                 #print(contents[ind],"\n",contents[ind+1])
                 metrics_keys_init=contents[ind]
                 metrics_keys=[key for key in re.split(r'\|{1,2}',metrics_keys_init)] # checks for both | and ||
-                keys.append([key for key in metrics_keys if any(key)]) #remve empty strings
+                keys.append([key for key in metrics_keys if any(key)]) #remove empty strings
                 vals.append(contents[ind+1].split()) # simply split using the whitespace
 
         #To produce a line graph, table as well as bar graph, the data should be saved in certain format as descrbed in the documentation here:
@@ -108,6 +111,7 @@ def metrics(data: pd.DataFrame):
         data2=[{keys_unique[i]+"_evolving": [[change_date(date_created,0),float(vals_list[i+len(keys_unique)])]] for i, key in enumerate(keys_unique)}]
         generic_line_graph_data=data1[0].copy()
         generic_line_graph_data.update(data2[0])   
+        
        
         #creating a horizontal bar graph with categories as initial  and final 
         horizontal_bar_graph_data=dict(Initial_test=list(generic_table[0].values()),Final_test=list(generic_table[1].values()))
@@ -115,8 +119,13 @@ def metrics(data: pd.DataFrame):
         final_bar_graph=dict(title="SSCD Metrics Bar Chart",x_axis_label="X Axis",y_axis_label="Y Axis",rotated=True,data=horizontal_bar_graph_data,categories=keys_unique)
         #print(final_bar_graph)
 
+        #append it all to the final object 
+        finalResult["SSCD_metrics_table"] = final_table
+        finalResult["performanceMetrics"] = generic_line_graph_data
+        finalResult["SSCD_metrics_bar_graph"] = final_bar_graph
 
-        #the time line graph, which will fetch all the test monitor results for the given deployable model and produce a time line graph for all the MTRs
+
+        #Add the aggregated (concatenated) time line graph, which will fetch all the test monitor results for the given deployable model and produce a time line graph for all the MTRs
         try:
             client = moc_client.MOCClient()
         except ValueError:
@@ -136,9 +145,7 @@ def metrics(data: pd.DataFrame):
         agg_line_graph=dict(title="SSCD Metrics Aggregate Line Graph",x_axis_label="X Axis",y_axis_label="Y Axis",data=agg_data)
 
         #Append it all to the final json object 
-        finalResult["SSCD_metrics_table"] = final_table
-        finalResult["performanceMetrics"] = generic_line_graph_data
-        finalResult["SSCD_metrics_bar_graph"] = final_bar_graph
+
         finalResult["SSCD_metrics_time_line_graph"] = agg_line_graph
 
 
