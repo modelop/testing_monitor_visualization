@@ -109,8 +109,10 @@ def metrics(data: pd.DataFrame):
         #Set up the data in a structure needed by a time line graph with x axis as date created for each metric and y axis as metrics values at these tests. Separate the two set of data as initial and evolving metrics 
         data1=[{keys_unique[i]+"_initial": [[change_date(date_created,0),float(vals_list[i])]] for i, key in enumerate(keys_unique)}]
         data2=[{keys_unique[i]+"_evolving": [[change_date(date_created,0),float(vals_list[i+len(keys_unique)])]] for i, key in enumerate(keys_unique)}]
-        generic_line_graph_data=data1[0].copy()
-        generic_line_graph_data.update(data2[0])   
+        time_graph_data=data1[0].copy()
+        time_graph_data.update(data2[0])   
+        #Create a time line graph object with current data 
+        dict(title="SSCD Metrics Aggregate Line Graph",x_axis_label="X Axis",y_axis_label="Y Axis",data=time_graph_data)
         
        
         #creating a horizontal bar graph with categories as initial  and final 
@@ -119,13 +121,11 @@ def metrics(data: pd.DataFrame):
         final_bar_graph=dict(title="SSCD Metrics Bar Chart",x_axis_label="X Axis",y_axis_label="Y Axis",rotated=True,data=horizontal_bar_graph_data,categories=keys_unique)
         #print(final_bar_graph)
 
-        #append it all to the final object 
-        finalResult["SSCD_metrics_table"] = final_table
-        finalResult["performanceMetrics"] = generic_line_graph_data
-        finalResult["SSCD_metrics_bar_graph"] = final_bar_graph
-
 
         #Add the aggregated (concatenated) time line graph, which will fetch all the test monitor results for the given deployable model and produce a time line graph for all the MTRs
+        
+ 
+        #get data from previous MTR
         try:
             client = moc_client.MOCClient()
         except ValueError:
@@ -133,19 +133,21 @@ def metrics(data: pd.DataFrame):
         path = f"model-manage/api/modelTestResultSummaries/search/findAllByDeployedModel_DeployableModel_Id?deployableModelId={DEPLOYABLE_MODEL_ID}&page=0&size=20"
         result = client.get(path)
         model_test_results = result.json.get("_embedded", {}).get("modelTestResultSummaries", [{}])
-        #search for "generic_line_graph" key in the nested structure
-        line_graph_results=[test_result['testResults']['performanceMetrics'] for test_result in model_test_results if 'performanceMetrics' in test_result['testResults']]
-        print(f"No. of MTRs with line graph ={len(line_graph_results)}")
-        #concatenate all the MTRs to produce a time line graph for each metric 
-        agg_data = {}
-        for dict_o in line_graph_results:
-            for key, val in dict_o.items():
-                agg_data[key] = agg_data.get(key, []) + val 
+        #search for "performanceMetrics" key in the nested structure which is where this data object is written
+        previous_time_graph_data=[test_result['testResults']['performanceMetrics'] for test_result in model_test_results if 'performanceMetrics' in test_result['testResults']]
+        print(f"No. of MTRs with line graph ={len(previous_time_graph_data)}")
+    
+        #concatenate all the MTRs and update the time graph object created above to produce a time line graph for each metric 
 
-        agg_line_graph=dict(title="SSCD Metrics Aggregate Line Graph",x_axis_label="X Axis",y_axis_label="Y Axis",data=agg_data)
+        time_graph_data.update({key: time_graph_data.get(key, []) + value for previous_data_dict in previous_time_graph_data for key, value in previous_data_dict.items()})        
 
-        #Append it all to the final json object 
+        agg_line_graph=dict(title="SSCD Metrics Aggregate Line Graph",x_axis_label="X Axis",y_axis_label="Y Axis",data=time_graph_data)
 
+
+        #append it all to the final object 
+        finalResult["SSCD_metrics_table"] = final_table
+        finalResult["performanceMetrics"] = time_graph_data
+        finalResult["SSCD_metrics_bar_graph"] = final_bar_graph
         finalResult["SSCD_metrics_time_line_graph"] = agg_line_graph
 
 
