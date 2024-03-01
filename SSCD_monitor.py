@@ -135,7 +135,7 @@ def metrics(data: pd.DataFrame):
         model_test_results = result.json.get("_embedded", {}).get("modelTestResultSummaries", [{}])
         #search for "performanceMetrics" key in the nested structure which is where this data object is written
         previous_time_graph_data=[test_result['testResults']['performanceMetrics'] for test_result in model_test_results if 'performanceMetrics' in test_result['testResults']]
-        print(f"No. of MTRs with line graph ={len(previous_time_graph_data)}")
+        print(f"Total no. of MTRs with line graph including the current one ={len(previous_time_graph_data)+1}")
     
         #concatenate all the MTRs and update the time graph object created above to produce a time line graph for each metric 
 
