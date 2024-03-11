@@ -103,18 +103,6 @@ def metrics(data: pd.DataFrame):
 
         metrics_table=[{"metric": key, version_no: val} for key, val in zip(keys_all, vals_list)]
         print(metrics_table)
-
-        """
-        #Add the date to the table  in a way that it adds to the beginning of the dictionary
-        date_created=time.ctime(os.path.getctime(filename))
-        final_table=[]
-        for gen in generic_table:
-            items = list(gen.items())
-            items.insert(0, ('date', date_created))
-            gen = dict(items)
-            final_table.append(gen)
-        #print(final_table)     
-        """
         
         #Set up the data in a structure needed by a time line graph with x axis as date created for each metric and y axis as metrics values at these tests. Separate the two set of data as initial and evolving metrics 
         date_created=time.ctime(os.path.getctime(filename))
