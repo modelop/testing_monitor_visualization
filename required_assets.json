@@ -10,7 +10,7 @@
         "usage": "ADDITIONAL_ASSET",
         "assetRole": "REQUIRED_ASSETS",
         "name": ".+\\.txt",
-        "filename": "model_performance_sample.txt",
+        "filename": "model_performance.txt",
         "metaData": {
             "description": "Model performance metrics from the current training run"
         }
