@@ -10,9 +10,9 @@ import modelop.utils as utils
 import modelop_sdk.restclient.moc_client as moc_client
 
 ##functions for certain tasks 
-def change_date(date_string:str,time_seconds:int): #converts to Date format accepted by ModelOP
+def change_date(date_string:str): #converts to Date format accepted by ModelOP
     datetime_object = datetime.datetime.strptime(date_string, '%a %b %d %H:%M:%S %Y')
-    return str(datetime_object+datetime.timedelta(seconds=time_seconds))
+    return str(datetime_object)
 
 def fix_numpy_nans_and_infs_in_dict(val: float) -> float: #removes nan and inf from numerical data
     # If value is numeric (not None), check for numpy.nan and numpy.inf
@@ -102,7 +102,7 @@ def metrics(data: pd.DataFrame):
         #Iterate all the values for the given keys and put them in a ModelOp generic table format, i.e. list of dictionaries
 
         metrics_table=[{"metric": key, version_no: val} for key, val in zip(keys_all, vals_list)]
-        print(metrics_table)
+        #print(metrics_table)
         
         #Set up the data in a structure needed by a time line graph with x axis as date created for each metric and y axis as metrics values at these tests. Separate the two set of data as initial and evolving metrics 
         date_created=time.ctime(os.path.getctime(filename))
@@ -111,8 +111,9 @@ def metrics(data: pd.DataFrame):
         data2=[{keys_unique[i]+"_evolving": [[change_date(date_created,0),float(vals_list[i+len(keys_unique)])]] for i, key in enumerate(keys_unique)}]
         time_graph_data=data1[0].copy()
         time_graph_data.update(data2[0])   
+        print(time_graph_data)
         #Create a time line graph object with current data 
-        dict(title="SSCD Metrics Aggregate Line Graph",x_axis_label="X Axis",y_axis_label="Y Axis",data=time_graph_data)
+        time_line_graph=dict(title="SSCD Metrics Aggregate Line Graph",x_axis_label="X Axis",y_axis_label="Y Axis",data=time_graph_data)
 
         #Creating a horizontal bar graph with 20 categories corresponding to initial  and evolving  
         #bar graph data 
@@ -135,14 +136,14 @@ def metrics(data: pd.DataFrame):
 
         #update the table with previous results
         previous_table_data=[test_result['testResults']['SSCD_metrics_table'] for test_result in model_test_results if 'SSCD_metrics_table' in test_result['testResults']]
-        print(previous_table_data)
+        #print(previous_table_data)
         if len(previous_table_data)>0:
             for dict_item,val in zip(previous_table_data[0],vals_list):
                 dict_item.update({version_no:val})        
                 final_table=previous_table_data[0]
         else:
             final_table=metrics_table
-        print(final_table)
+        #print(final_table)
 
         #update  the bar graph with previous results
         previous_bar_graph_data=[test_result['testResults']['SSCD_metrics_bar_graph']['data'] for test_result in model_test_results if 'SSCD_metrics_bar_graph' in test_result['testResults']]
@@ -156,15 +157,14 @@ def metrics(data: pd.DataFrame):
         #print(final_bar_graph)
 
         #update the time graph with previous results
-
         #search for "performanceMetrics" key in the nested structure which is where this data object is written
         previous_time_graph_data=[test_result['testResults']['performanceMetrics'] for test_result in model_test_results if 'performanceMetrics' in test_result['testResults']]
-        #print(f"Total no. of MTRs with line graph including the current one ={len(previous_time_graph_data)+1}")
+        print(f"Total no. of MTRs with line graph including the current one ={len(previous_time_graph_data)+1}")
     
         #concatenate all the MTRs and update the time graph object created above to produce a time line graph for each metric 
         time_graph_data.update({key: time_graph_data.get(key, []) + value for previous_data_dict in previous_time_graph_data for key, value in previous_data_dict.items()})        
         agg_line_graph=dict(title="SSCD Metrics Aggregate Line Graph",x_axis_label="X Axis",y_axis_label="Y Axis",data=time_graph_data)
-
+        print("updated",time_graph_data)
 
         #append it all to the final object 
         finalResult["SSCD_metrics_table"] = final_table
