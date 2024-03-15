@@ -160,9 +160,13 @@ def metrics(data: pd.DataFrame):
         #search for "performanceMetrics" key in the nested structure which is where this data object is written
         previous_time_graph_data=[test_result['testResults']['performanceMetrics'] for test_result in model_test_results if 'performanceMetrics' in test_result['testResults']]
         print(f"Total no. of MTRs with line graph including the current one ={len(previous_time_graph_data)+1}")
+        print("previous",previous_time_graph_data)
     
         #concatenate all the MTRs and update the time graph object created above to produce a time line graph for each metric 
-        time_graph_data.update({key: time_graph_data.get(key, []) + value for previous_data_dict in previous_time_graph_data for key, value in previous_data_dict.items()})        
+        #time_graph_data.update({key: time_graph_data.get(key, []) + value for previous_data_dict in previous_time_graph_data for key, value in previous_data_dict.items()})  
+        for previous_data_dict in previous_time_graph_data:
+            for key, val in previous_data_dict.items():
+                time_graph_data[key] = time_graph_data.get(key, []) + val 
         agg_line_graph=dict(title="SSCD Metrics Aggregate Line Graph",x_axis_label="X Axis",y_axis_label="Y Axis",data=time_graph_data)
         print("updated",time_graph_data)
 
