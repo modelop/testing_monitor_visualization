@@ -175,9 +175,9 @@ def metrics(data: pd.DataFrame):
         print("updated",time_graph_data)
 
         #append it all to the final object 
-        finalResult["SSCD_metrics_table"] = final_table
+        finalResult[f'{MODEL_NAME}_Metrics_Per_Version_Table'] = final_table
         finalResult["performanceMetrics"] = time_graph_data
-        finalResult["SSCD_metrics_bar_graph"] = final_bar_graph
+        finalResult[f'{MODEL_NAME}_Metrics_Per_Version_Bar'] = final_bar_graph
         finalResult["SSCD_metrics_time_line_graph"] = agg_line_graph
 
 
