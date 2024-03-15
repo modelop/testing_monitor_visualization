@@ -35,6 +35,7 @@ def fix_numpy_nans_and_infs_in_dict(val: float) -> float: #removes nan and inf f
 def init(init_param):
     global DEPLOYABLE_MODEL_ID
     global PREDICTION_DATE_COLUMN
+    global MODEL_NAME
 
     job = json.loads(init_param["rawJson"])
     
@@ -46,6 +47,8 @@ def init(init_param):
 
     if not PREDICTION_DATE_COLUMN:
         raise ValueError('No version parameter was found in the job parameters')
+    
+    MODEL_NAME=job.get('referenceModel', {}).get('storedModel', {}).get('modelMetaData',{}).get('name','SSCD') 
     logger = utils.configure_logger()
 
 
@@ -113,12 +116,12 @@ def metrics(data: pd.DataFrame):
         time_graph_data.update(data2[0])   
         print(time_graph_data)
         #Create a time line graph object with current data 
-        time_line_graph=dict(title="SSCD Metrics Aggregate Line Graph",x_axis_label="X Axis",y_axis_label="Y Axis",data=time_graph_data)
+        time_line_graph=dict(title=f"{MODEL_NAME} Metrics Over Time",x_axis_label="X Axis",y_axis_label="Y Axis",data=time_graph_data)
 
         #Creating a horizontal bar graph with 20 categories corresponding to initial  and evolving  
         #bar graph data 
         bar_graph_data={version_no:vals_list}
-        final_bar_graph=dict(title="SSCD Metrics Bar Chart",x_axis_label="X Axis",y_axis_label="Y Axis",rotated=True,data=bar_graph_data,categories=keys_all)
+        final_bar_graph=dict(title=f"{MODEL_NAME} Metrics Bar Chart",x_axis_label="X Axis",y_axis_label="Y Axis",rotated=True,data=bar_graph_data,categories=keys_all)
         #print(final_bar_graph)
 
 
@@ -135,7 +138,7 @@ def metrics(data: pd.DataFrame):
         model_test_results = result.json.get("_embedded", {}).get("modelTestResultSummaries", [{}])
 
         #update the table with previous results
-        previous_table_data=[test_result['testResults']['SSCD_metrics_table'] for test_result in model_test_results if 'SSCD_metrics_table' in test_result['testResults']]
+        previous_table_data=[test_result['testResults'][f'{MODEL_NAME}_Metrics_Per_Version_Table'] for test_result in model_test_results if 'SSCD_metrics_table' in test_result['testResults']]
         #print(previous_table_data)
         if len(previous_table_data)>0:
             for dict_item,val in zip(previous_table_data[0],vals_list):
@@ -146,14 +149,15 @@ def metrics(data: pd.DataFrame):
         #print(final_table)
 
         #update  the bar graph with previous results
-        previous_bar_graph_data=[test_result['testResults']['SSCD_metrics_bar_graph']['data'] for test_result in model_test_results if 'SSCD_metrics_bar_graph' in test_result['testResults']]
+        previous_bar_graph_data=[test_result['testResults'][f'{MODEL_NAME}_Metrics_Per_Version_Bar']['data'] for test_result in model_test_results if 'SSCD_metrics_bar_graph' in test_result['testResults']]
         bar_graph_data_all={}
         bar_graph_data_all.update(bar_graph_data) #append the data from this date
         for i in range(len(previous_bar_graph_data)):
             bar_graph_data_all.update(previous_bar_graph_data[i])
         #print(bar_graph_data_all)    
          #update the bar graph with the old data appended to the current data
-        final_bar_graph=dict(title="SSCD Metrics Bar Chart",x_axis_label="X Axis",y_axis_label="Y Axis",rotated=True,data=bar_graph_data_all,categories=keys_all)
+        title_bar=f'{MODEL_NAME} Metrics Per Version'    
+        final_bar_graph=dict(title=title_bar,x_axis_label="X Axis",y_axis_label="Y Axis",rotated=True,data=bar_graph_data_all,categories=keys_all)
         #print(final_bar_graph)
 
         #update the time graph with previous results
