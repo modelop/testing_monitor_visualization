@@ -110,8 +110,8 @@ def metrics(data: pd.DataFrame):
         #Set up the data in a structure needed by a time line graph with x axis as date created for each metric and y axis as metrics values at these tests. Separate the two set of data as initial and evolving metrics 
         date_created=time.ctime(os.path.getctime(filename))
 
-        data1=[{keys_unique[i]+"_initial": [[change_date(date_created,0),float(vals_list[i])]] for i, key in enumerate(keys_unique)}]
-        data2=[{keys_unique[i]+"_evolving": [[change_date(date_created,0),float(vals_list[i+len(keys_unique)])]] for i, key in enumerate(keys_unique)}]
+        data1=[{keys_unique[i]+"_initial": [[change_date(date_created),float(vals_list[i])]] for i, key in enumerate(keys_unique)}]
+        data2=[{keys_unique[i]+"_evolving": [[change_date(date_created),float(vals_list[i+len(keys_unique)])]] for i, key in enumerate(keys_unique)}]
         time_graph_data=data1[0].copy()
         time_graph_data.update(data2[0])   
         print(time_graph_data)
