@@ -102,13 +102,14 @@ def metrics(data: pd.DataFrame):
         keys_list=['Fscore_neg_class' if key == 'Fscore Negative_class' else key for key in keys_list_orig]
         keys_unique=sorted(set(keys_list),key=keys_list.index) #remove duplicates but preserve the order
         vals_list_o=[fix_numpy_nans_and_infs_in_dict(sub_val) for val in vals for sub_val in val]
-        vals_list=[0 if np.isnan(val) else val for val in vals_list_o]
+        print(vals_list_o)
+        vals_list=[0 if np.isnan(float(val)) else val for val in vals_list_o]
         #Create a list of initial and evolving keys for the bar graph 
         keys_initial=[f+str("_initial") for f in keys_list[:10]] #since 10 metrics
         keys_evolving=[f+str("_evolving") for f in keys_list[10::]]
         keys_all=keys_initial+keys_evolving 
        
-        
+        print(keys_all)
         # Since MOC reads the json object which fails for nan or inf values, therefore we need to remove these two kind of numerical values from our data
         #Iterate all the values for the given keys and put them in a ModelOp generic table format, i.e. list of dictionaries
 
