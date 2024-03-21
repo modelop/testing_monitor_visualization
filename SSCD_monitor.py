@@ -11,7 +11,7 @@ import modelop_sdk.restclient.moc_client as moc_client
 
 ##functions for certain tasks 
 def change_date(date_string:str): #converts to Date format accepted by ModelOP
-    datetime_object = datetime.datetime.strptime(date_string, '%a %b %d %H:%M:%S %Y')
+    datetime_object = datetime.datetime.strptime(date_string, "%Y-%m-%d")
     return str(datetime_object)
 
 def fix_numpy_nans_and_infs_in_dict(val: float) -> float: #removes nan and inf from numerical data
@@ -34,8 +34,9 @@ def fix_numpy_nans_and_infs_in_dict(val: float) -> float: #removes nan and inf f
 # modelop.init
 def init(init_param):
     global DEPLOYABLE_MODEL_ID
-    global PREDICTION_DATE_COLUMN
+    global PROCESSED_DATE_VERSION
     global MODEL_NAME
+    global VERSION
 
     job = json.loads(init_param["rawJson"])
     
@@ -43,10 +44,14 @@ def init(init_param):
     DEPLOYABLE_MODEL_ID = job.get('referenceModel', {}).get('id', None) 
     if not DEPLOYABLE_MODEL_ID:
         raise ValueError('You must provide a reference model for this job of the model to pull the test results from')
-    PREDICTION_DATE_COLUMN= job.get('jobParameters', {}).get('version', "")
-
-    if not PREDICTION_DATE_COLUMN:
-        raise ValueError('No version parameter was found in the job parameters')
+    
+    VERSION = job.get('referenceModel', {}).get('version', None) 
+    if not VERSION:
+        raise ValueError('No version parameter was found in the job parameters')    
+    
+    PROCESSED_DATE_VERSION= job.get('jobParameters', {}).get('date_processed_version', "")
+    if not PROCESSED_DATE_VERSION:
+        raise ValueError('No processed data parameter was found in the job parameters')
     
     MODEL_NAME=job.get('referenceModel', {}).get('storedModel', {}).get('modelMetaData',{}).get('name','SSCD') 
     logger = utils.configure_logger()
@@ -64,7 +69,7 @@ def metrics(data: pd.DataFrame):
         finalResult["sample"] = {"no": "data provided"}
     else:
         #Open the file and read contents
-        filename="model_performance.txt"
+        filename="Version_8.txt"
         if os.path.isfile(f'./{filename}'):
             logger.info(f'found {filename}')
             with open(f'./{filename}') as file:
@@ -79,7 +84,7 @@ def metrics(data: pd.DataFrame):
         #Extract the keys and values from the above file and append those to appropriate lists
         keys=[]
         vals=[]
-        version_no=f'Version {PREDICTION_DATE_COLUMN}'
+        version_no=f'Version {VERSION}'
         for ind,line in enumerate(contents):
             if "|" in line:
                 #print(contents[ind],"\n",contents[ind+1])
@@ -92,7 +97,9 @@ def metrics(data: pd.DataFrame):
                 #https://modelopdocs.atlassian.net/wiki/spaces/dv301/pages/1697154788/Model+Monitoring+Overview#Custom-Monitor-Output---Charts%2C-Graphs%2C-Tables
 
         #Remove the nessted structure from both keys and values lists and extract the unique keys to which values should be associated later
-        keys_list=[sub_key for key in keys for sub_key in key]
+        keys_list_orig=[sub_key for key in keys for sub_key in key]
+        #Some of the .txt contain a different name for F_Score for negative class and the next line checks for this and replaces it with the original name 
+        keys_list=['Fscore_neg_class' if key == 'Fscore Negative_class' else key for key in keys_list_orig]
         keys_unique=sorted(set(keys_list),key=keys_list.index) #remove duplicates but preserve the order
         vals_list=[fix_numpy_nans_and_infs_in_dict(sub_val) for val in vals for sub_val in val]
         #Create a list of initial and evolving keys for the bar graph 
@@ -108,10 +115,10 @@ def metrics(data: pd.DataFrame):
         #print(metrics_table)
         
         #Set up the data in a structure needed by a time line graph with x axis as date created for each metric and y axis as metrics values at these tests. Separate the two set of data as initial and evolving metrics 
-        date_created=time.ctime(os.path.getctime(filename))
+        #date_created=time.ctime(os.path.getctime(filename))
 
-        data1=[{keys_unique[i]+"_initial": [[change_date(date_created),float(vals_list[i])]] for i, key in enumerate(keys_unique)}]
-        data2=[{keys_unique[i]+"_evolving": [[change_date(date_created),float(vals_list[i+len(keys_unique)])]] for i, key in enumerate(keys_unique)}]
+        data1=[{keys_unique[i]+"_initial": [[change_date(PROCESSED_DATE_VERSION),float(vals_list[i])]] for i, key in enumerate(keys_unique)}]
+        data2=[{keys_unique[i]+"_evolving": [[change_date(PROCESSED_DATE_VERSION),float(vals_list[i+len(keys_unique)])]] for i, key in enumerate(keys_unique)}]
         time_graph_data=data1[0].copy()
         time_graph_data.update(data2[0])   
         print(time_graph_data)
