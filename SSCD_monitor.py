@@ -27,7 +27,7 @@ def fix_numpy_nans_and_infs_in_dict(val: float) -> float: #removes nan and inf f
         except TypeError:
             pass
 
-    return val
+    return float(val)
 
 
 
@@ -102,8 +102,7 @@ def metrics(data: pd.DataFrame):
         keys_list=['Fscore_neg_class' if key == 'Fscore Negative_class' else key for key in keys_list_orig]
         keys_unique=sorted(set(keys_list),key=keys_list.index) #remove duplicates but preserve the order
         vals_list_o=[fix_numpy_nans_and_infs_in_dict(sub_val) for val in vals for sub_val in val]
-        print(vals_list_o)
-        vals_list=[0 if np.isnan(float(val)) else val for val in vals_list_o]
+        vals_list=json.dumps([None if np.isnan(x) else x for x in vals_list_o])
         #Create a list of initial and evolving keys for the bar graph 
         keys_initial=[f+str("_initial") for f in keys_list[:10]] #since 10 metrics
         keys_evolving=[f+str("_evolving") for f in keys_list[10::]]
@@ -119,8 +118,8 @@ def metrics(data: pd.DataFrame):
         #Set up the data in a structure needed by a time line graph with x axis as date created for each metric and y axis as metrics values at these tests. Separate the two set of data as initial and evolving metrics 
         #date_created=time.ctime(os.path.getctime(filename))
 
-        data1=[{keys_unique[i]+"_initial": [[change_date(PROCESSED_DATE_VERSION),float(vals_list[i])]] for i, key in enumerate(keys_unique)}]
-        data2=[{keys_unique[i]+"_evolving": [[change_date(PROCESSED_DATE_VERSION),float(vals_list[i+len(keys_unique)])]] for i, key in enumerate(keys_unique)}]
+        data1=[{keys_unique[i]+"_initial": [[change_date(PROCESSED_DATE_VERSION),vals_list[i]]] for i, key in enumerate(keys_unique)}]
+        data2=[{keys_unique[i]+"_evolving": [[change_date(PROCESSED_DATE_VERSION),vals_list[i+len(keys_unique)]]] for i, key in enumerate(keys_unique)}]
         time_graph_data=data1[0].copy()
         time_graph_data.update(data2[0])   
         print(time_graph_data)
