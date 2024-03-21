@@ -69,7 +69,7 @@ def metrics(data: pd.DataFrame):
         finalResult["sample"] = {"no": "data provided"}
     else:
         #Open the file and read contents
-        filename="Version_8.txt"
+        filename="monitoring_performance.txt"
         if os.path.isfile(f'./{filename}'):
             logger.info(f'found {filename}')
             with open(f'./{filename}') as file:
