@@ -102,7 +102,7 @@ def metrics(data: pd.DataFrame):
         keys_list=['Fscore_neg_class' if key == 'Fscore Negative_class' else key for key in keys_list_orig]
         keys_unique=sorted(set(keys_list),key=keys_list.index) #remove duplicates but preserve the order
         vals_list_o=[fix_numpy_nans_and_infs_in_dict(sub_val) for val in vals for sub_val in val]
-        vals_list=[None if np.isnan(x) else x for x in vals_list_o]
+        vals_list=["" if np.isnan(x) else str(x) for x in vals_list_o]
         #Create a list of initial and evolving keys for the bar graph 
         keys_initial=[f+str("_initial") for f in keys_list[:10]] #since 10 metrics
         keys_evolving=[f+str("_evolving") for f in keys_list[10::]]
